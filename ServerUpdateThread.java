@@ -24,7 +24,8 @@ public class ServerUpdateThread implements Runnable {
   public void run() {
     Condition cond = c.getCondition();
     Lock l = c.getLock();
-    while(true) {
+    while(!s.isOutputShutdown()) {
+      int update = c.getSize();
       try {
         l.lock();
         while(c.getSize() == sentMessages)
@@ -34,8 +35,7 @@ public class ServerUpdateThread implements Runnable {
           catch (Exception e) {
             e.printStackTrace();
           }
-          for(; sentMessages < c.getSize(); sentMessages++)
-            out.println(c.getMessage(sentMessages));
+        update = c.getSize();
       }
       catch (Exception e) {
         e.printStackTrace();
@@ -43,6 +43,8 @@ public class ServerUpdateThread implements Runnable {
       finally {
         l.unlock();
       }
+      for(; sentMessages < update; sentMessages++)
+        out.println(c.getMessage(sentMessages));
     }
   }
 }
